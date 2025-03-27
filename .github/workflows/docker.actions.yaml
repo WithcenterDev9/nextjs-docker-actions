@@ -7,8 +7,28 @@ on:
 
 jobs:
   deploy:
-    runs-on: 
+    runs-on:
       - ubuntu-latest
     steps:
       - name: Hello world
         run: echo "Hello world"
+      - name: Extact docker image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: withcenterdev9/my-image
+      - name: Login Docker Hub
+        uses: docker/login-actionv3
+        with:
+          username: withcenterdev9
+          password: ${{secrets.DOCKER_PASSWORD}}
+      - name:
+        uses: docker/setup-buildx-actions@v3
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          provenance: true
+          sbom: true
